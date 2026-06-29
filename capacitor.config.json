@@ -1,6 +1,6 @@
 {
   "appId": "com.tunestream.app",
-  "appName": "TuneStream",
+  "appName": "Music Player",
   "webDir": "www",
   "android": {
     "allowMixedContent": true

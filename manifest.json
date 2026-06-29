@@ -1,6 +1,6 @@
 {
-  "name": "TuneStream — Background YouTube Player",
-  "short_name": "TuneStream",
+  "name": "Music Player",
+  "short_name": "Music Player",
   "description": "Paste a YouTube video or playlist link and keep it playing in the background.",
   "start_url": "./index.html",
   "scope": "./",
