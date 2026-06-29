@@ -11,6 +11,11 @@ no API key.
 - Builds an **Up Next queue** with thumbnails and titles (fetched via YouTube's public oEmbed
   endpoint, so no API key is needed).
 - **Play / pause / next / previous / shuffle / loop** controls.
+- **⧉ Pop-out floating player** — on desktop Chrome/Edge the player jumps into a small
+  always-on-top window (via the [Document Picture-in-Picture API]) so it keeps playing while you
+  browse other tabs and apps.
+- **⛶ Fullscreen** mode for a distraction-free player.
+- **🔒 Lock** button — blocks accidental taps while the music keeps playing; hold to unlock.
 - **Lock-screen & keyboard media controls** via the [Media Session API] — your phone's lock
   screen and laptop media keys can control playback and show the cover art.
 - **Auto-advances** through the queue and **skips** videos that can't be embedded.
@@ -55,11 +60,18 @@ npx serve .
 Or deploy the folder to **GitHub Pages**, Netlify, Vercel, Cloudflare Pages — anywhere that
 serves static files over HTTPS. (HTTPS is needed for the service worker / installability.)
 
-### Deploy to GitHub Pages
+### Deploy to GitHub Pages (automated)
 
-1. Push this branch.
-2. Repo **Settings → Pages → Build from branch**, pick this branch and `/ (root)`.
-3. Open the published URL.
+This repo ships a workflow at `.github/workflows/deploy.yml` that builds and publishes the site
+automatically on every push.
+
+1. In the repo, go to **Settings → Pages**.
+2. Under **Build and deployment → Source**, choose **GitHub Actions**. *(One-time toggle —
+   GitHub requires the repo owner to opt in; it can't be flipped from code.)*
+3. Push to this branch (or `main`). The **Deploy to GitHub Pages** action runs and prints the
+   live URL in its summary.
+
+Once published, open that URL on your phone and tap **Add to Home Screen** to use it like an app.
 
 ## Files
 
@@ -78,3 +90,4 @@ serves static files over HTTPS. (HTTPS is needed for the service worker / instal
 - A future version could add drag-to-reorder, search, and a "radio" mode.
 
 [Media Session API]: https://developer.mozilla.org/en-US/docs/Web/API/Media_Session_API
+[Document Picture-in-Picture API]: https://developer.mozilla.org/en-US/docs/Web/API/Document_Picture-in-Picture_API

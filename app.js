@@ -30,11 +30,15 @@
     prevBtn: $('prev-btn'),
     nextBtn: $('next-btn'),
     pipBtn: $('pip-btn'),
+    fullscreenBtn: $('fullscreen-btn'),
+    lockBtn: $('lock-btn'),
     shuffleBtn: $('shuffle-btn'),
     loopBtn: $('loop-btn'),
     clearBtn: $('clear-btn'),
     list: $('queue-list'),
     empty: $('queue-empty'),
+    lockOverlay: $('lock-overlay'),
+    unlockBtn: $('unlock-btn'),
   };
 
   // ---------------------------------------------------------------------------
@@ -392,19 +396,132 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Picture-in-Picture
+  // Pop-out floating player (Document Picture-in-Picture)
   // ---------------------------------------------------------------------------
 
   async function togglePiP() {
-    const iframe = document.querySelector('#player iframe');
-    // YouTube iframe doesn't expose the inner <video> to us (cross-origin),
-    // so true PiP must be triggered from YouTube's own controls. Guide the user.
-    if (document.pictureInPictureElement) {
-      try { await document.exitPictureInPicture(); } catch {}
+    const wrap = document.querySelector('.player-wrap');
+
+    // Best path: Document Picture-in-Picture pops the whole player into a
+    // floating, always-on-top window so it keeps playing while you browse
+    // other tabs/apps. (Chrome/Edge desktop.)
+    if ('documentPictureInPicture' in window) {
+      if (window.documentPictureInPicture.window) {
+        window.documentPictureInPicture.window.close();
+        return;
+      }
+      try {
+        const pip = await window.documentPictureInPicture.requestWindow({
+          width: 400,
+          height: 240,
+        });
+        copyStylesTo(pip);
+        pip.document.body.classList.add('pip-body');
+        pip.document.body.style.margin = '0';
+        pip.document.body.style.background = '#000';
+        pip.document.body.append(wrap);
+        showPipNote(true);
+        els.pipBtn.classList.add('active');
+        pip.addEventListener('pagehide', () => {
+          document.querySelector('.player-card').prepend(wrap);
+          showPipNote(false);
+          els.pipBtn.classList.remove('active');
+        });
+      } catch {
+        showHint('Could not open the pop-out player.');
+      }
       return;
     }
-    showHint('Tap the video, then use YouTube’s Picture-in-Picture / fullscreen control.');
+
+    // Fallback (mobile / Firefox): guide to YouTube's own PiP control.
+    showHint('Tap the video, then use YouTube’s Picture-in-Picture control.');
+    const iframe = document.querySelector('#player iframe');
     if (iframe) iframe.focus();
+  }
+
+  function copyStylesTo(win) {
+    [...document.styleSheets].forEach((sheet) => {
+      try {
+        const css = [...sheet.cssRules].map((r) => r.cssText).join('');
+        const style = win.document.createElement('style');
+        style.textContent = css;
+        win.document.head.appendChild(style);
+      } catch {
+        if (sheet.href) {
+          const link = win.document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = sheet.href;
+          win.document.head.appendChild(link);
+        }
+      }
+    });
+  }
+
+  function showPipNote(on) {
+    const card = document.querySelector('.player-card');
+    const existing = card.querySelector('.pip-note');
+    if (on) {
+      if (existing) return;
+      const note = document.createElement('div');
+      note.className = 'pip-note';
+      note.textContent = '▶ Playing in pop-out window';
+      card.prepend(note);
+    } else if (existing) {
+      existing.remove();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Fullscreen
+  // ---------------------------------------------------------------------------
+
+  function toggleFullscreen() {
+    const target = document.querySelector('.player-card');
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else if (target.requestFullscreen) {
+      target.requestFullscreen().catch(() => showHint('Fullscreen not available here.'));
+    } else if (target.webkitRequestFullscreen) {
+      target.webkitRequestFullscreen();
+    } else {
+      showHint('Fullscreen isn’t supported in this browser.');
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Lock (block accidental taps; hold to unlock)
+  // ---------------------------------------------------------------------------
+
+  let unlockTimer = null;
+
+  function lockScreen() {
+    // Make sure the overlay sits inside the fullscreen element if we're
+    // fullscreen, otherwise it would render behind it.
+    (document.fullscreenElement || document.body).appendChild(els.lockOverlay);
+    els.lockOverlay.classList.remove('hidden');
+    els.lockOverlay.setAttribute('aria-hidden', 'false');
+    els.lockBtn.classList.add('active');
+  }
+
+  function unlockScreen() {
+    els.lockOverlay.classList.add('hidden');
+    els.lockOverlay.setAttribute('aria-hidden', 'true');
+    els.lockBtn.classList.remove('active');
+  }
+
+  function startUnlock(e) {
+    e.preventDefault();
+    els.unlockBtn.classList.add('holding');
+    unlockTimer = setTimeout(() => {
+      els.unlockBtn.classList.remove('holding');
+      if (navigator.vibrate) navigator.vibrate(30);
+      unlockScreen();
+    }, 800);
+  }
+
+  function cancelUnlock() {
+    clearTimeout(unlockTimer);
+    els.unlockBtn.classList.remove('holding');
   }
 
   // ---------------------------------------------------------------------------
@@ -497,6 +614,21 @@
   els.prevBtn.addEventListener('click', prevTrack);
   els.nextBtn.addEventListener('click', () => nextTrack());
   els.pipBtn.addEventListener('click', togglePiP);
+  els.fullscreenBtn.addEventListener('click', toggleFullscreen);
+  els.lockBtn.addEventListener('click', lockScreen);
+  // Hold-to-unlock (works for both touch and mouse).
+  els.unlockBtn.addEventListener('pointerdown', startUnlock);
+  els.unlockBtn.addEventListener('pointerup', cancelUnlock);
+  els.unlockBtn.addEventListener('pointerleave', cancelUnlock);
+  els.unlockBtn.addEventListener('pointercancel', cancelUnlock);
+  els.unlockBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+  // If we leave fullscreen while locked, keep the overlay covering the page.
+  document.addEventListener('fullscreenchange', () => {
+    els.fullscreenBtn.classList.toggle('active', !!document.fullscreenElement);
+    if (!els.lockOverlay.classList.contains('hidden')) {
+      (document.fullscreenElement || document.body).appendChild(els.lockOverlay);
+    }
+  });
   els.clearBtn.addEventListener('click', () => {
     queue = [];
     current = -1;

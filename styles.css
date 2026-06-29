@@ -232,3 +232,77 @@ html, body {
   color: var(--text-dim);
   font-size: 0.8rem;
 }
+
+/* Fullscreen mode for the player card */
+.player-card:fullscreen {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #000;
+  padding: 24px;
+}
+.player-card:fullscreen .player-wrap {
+  max-width: min(100%, 150vh);
+  margin: 0 auto;
+  width: 100%;
+}
+.player-card:fullscreen .now-playing { text-align: center; }
+
+/* "Playing in pop-out window" note shown while Document PiP is active */
+.pip-note {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--bg-elev);
+  border-radius: 10px;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+  text-align: center;
+}
+/* The popped-out window's body */
+.pip-body .player-wrap { aspect-ratio: auto; height: 100vh; }
+
+/* Lock overlay */
+.lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 8, 14, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  touch-action: none;
+}
+.lock-overlay.hidden { display: none; }
+.lock-inner { text-align: center; padding: 24px; user-select: none; }
+.lock-icon { font-size: 3rem; }
+.lock-msg { font-size: 1.3rem; font-weight: 700; margin-top: 8px; }
+.lock-sub { color: var(--text-dim); font-size: 0.9rem; margin-top: 4px; }
+.unlock-btn {
+  position: relative;
+  margin-top: 26px;
+  padding: 14px 26px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #fff;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  overflow: hidden;
+  touch-action: none;
+}
+.unlock-text { position: relative; z-index: 2; }
+.unlock-fill {
+  position: absolute;
+  inset: 0;
+  width: 0%;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  z-index: 1;
+  transition: width 0s;
+}
+.unlock-btn.holding .unlock-fill { width: 100%; transition: width 0.8s linear; }

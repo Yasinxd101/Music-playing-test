@@ -48,7 +48,9 @@
           <button id="prev-btn" class="ctrl" title="Previous" aria-label="Previous">⏮</button>
           <button id="play-btn" class="ctrl ctrl-main" title="Play / Pause" aria-label="Play or pause">▶</button>
           <button id="next-btn" class="ctrl" title="Next" aria-label="Next">⏭</button>
-          <button id="pip-btn" class="ctrl" title="Picture-in-Picture" aria-label="Picture in picture">⧉</button>
+          <button id="pip-btn" class="ctrl" title="Pop out floating player" aria-label="Pop out floating player">⧉</button>
+          <button id="fullscreen-btn" class="ctrl" title="Fullscreen" aria-label="Toggle fullscreen">⛶</button>
+          <button id="lock-btn" class="ctrl" title="Lock (block taps)" aria-label="Lock screen">🔒</button>
           <button id="shuffle-btn" class="ctrl" title="Shuffle" aria-label="Toggle shuffle">🔀</button>
           <button id="loop-btn" class="ctrl" title="Loop queue" aria-label="Toggle loop">🔁</button>
         </div>
@@ -77,12 +79,17 @@
           close as possible on mobile:
         </p>
         <ul>
-          <li>Tap the <strong>⧉ Picture-in-Picture</strong> button — the video shrinks to a
-            floating window that keeps playing while you use other apps.</li>
+          <li>Tap <strong>⧉ Pop out</strong> — on desktop Chrome/Edge the player jumps into a
+            small floating window that stays on top while you browse other tabs and apps. On
+            phones, use YouTube's own Picture-in-Picture control.</li>
+          <li>Tap <strong>⛶ Fullscreen</strong> for a distraction-free full-screen player.</li>
+          <li>Tap <strong>🔒 Lock</strong> to block accidental taps — the music keeps playing and
+            you hold the button to unlock.</li>
           <li>Use the <strong>lock-screen media controls</strong> (play / pause / next) that this
             app registers.</li>
-          <li>Add this page to your home screen (Share → <em>Add to Home Screen</em>) for an
-            app-like experience.</li>
+          <li><strong>Install it as an app:</strong> on phones, Share → <em>Add to Home Screen</em>;
+            on desktop Chrome/Edge, the install icon in the address bar. It then opens in its own
+            window like a real app.</li>
         </ul>
       </div>
     </details>
@@ -90,6 +97,19 @@
     <footer class="app-footer">
       Plays via the official YouTube player. No account or sign-in needed.
     </footer>
+  </div>
+
+  <!-- Lock overlay: blocks all taps until you hold the unlock button. -->
+  <div id="lock-overlay" class="lock-overlay hidden" aria-hidden="true">
+    <div class="lock-inner">
+      <div class="lock-icon">🔒</div>
+      <div class="lock-msg">Screen locked</div>
+      <div class="lock-sub">Music keeps playing — taps are blocked</div>
+      <button id="unlock-btn" class="unlock-btn" aria-label="Hold to unlock">
+        <span class="unlock-fill"></span>
+        <span class="unlock-text">Hold to unlock</span>
+      </button>
+    </div>
   </div>
 
   <script src="app.js"></script>
