@@ -73,6 +73,34 @@ automatically on every push.
 
 Once published, open that URL on your phone and tap **Add to Home Screen** to use it like an app.
 
+## Install as an Android app (APK)
+
+There's also a real **Android APK** you can sideload. The `.github/workflows/build-apk.yml`
+workflow wraps the web app with [Capacitor] (a Chrome-backed WebView, so YouTube plays
+reliably) and builds a debug-signed APK on every push.
+
+1. Open the repo's **Actions → Build Android APK** and wait for a green run, **or** grab the
+   APK from the **Releases** page (tag `apk-latest`).
+2. Download **`TuneStream.apk`** onto your phone.
+3. Open it; if Android asks, allow your browser/file manager to **"install unknown apps"**.
+4. Install and open — it runs in its own window like a normal app.
+
+> It's a debug build meant for personal sideloading, not the Play Store, so Android will show
+> the usual "unknown source" prompt — that's expected.
+
+To build it yourself locally you'll need Node, JDK 17, and the Android SDK:
+
+```bash
+npm install
+npm run build:www
+npx cap add android
+npx cap sync android
+cd android && ./gradlew assembleDebug
+# APK at android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+[Capacitor]: https://capacitorjs.com/
+
 ## Files
 
 | File | Purpose |

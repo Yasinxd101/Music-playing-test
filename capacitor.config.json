@@ -1,0 +1,8 @@
+{
+  "appId": "com.tunestream.app",
+  "appName": "TuneStream",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": true
+  }
+}

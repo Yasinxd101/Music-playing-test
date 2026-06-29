@@ -1,0 +1,86 @@
+name: Build Android APK
+
+# Builds an installable (debug-signed) Android APK from the web app using
+# Capacitor, then attaches it to a "apk-latest" release you can download.
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - claude/background-audio-player-mvpwvp
+    paths:
+      - 'index.html'
+      - 'app.js'
+      - 'styles.css'
+      - 'manifest.json'
+      - 'sw.js'
+      - 'capacitor.config.json'
+      - 'package.json'
+      - 'scripts/**'
+      - '.github/workflows/build-apk.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Java (JDK 17)
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build web bundle
+        run: npm run build:www
+
+      - name: Add Android platform
+        run: npx --no-install cap add android
+
+      - name: Sync Capacitor
+        run: npx --no-install cap sync android
+
+      - name: Build debug APK
+        run: |
+          cd android
+          chmod +x ./gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Stage APK
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk TuneStream.apk
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TuneStream-apk
+          path: TuneStream.apk
+
+      - name: Publish APK to a release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: TuneStream APK (latest build)
+          files: TuneStream.apk
+          body: |
+            **TuneStream** — installable Android build.
+
+            1. Download **TuneStream.apk** below on your phone.
+            2. Open it; if prompted, allow your browser/file manager to "install unknown apps".
+            3. Install and open — it runs in its own window like a normal app.
+
+            This is a debug-signed build for personal sideloading (not from the Play Store).

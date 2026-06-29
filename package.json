@@ -1,0 +1,14 @@
+{
+  "name": "tunestream",
+  "version": "1.0.0",
+  "description": "Background YouTube/playlist player — web app + Android APK wrapper.",
+  "private": true,
+  "scripts": {
+    "build:www": "node scripts/build-www.mjs"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/cli": "^6.0.0",
+    "@capacitor/core": "^6.0.0"
+  }
+}

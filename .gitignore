@@ -10,3 +10,9 @@ Thumbs.db
 
 # Local dev
 node_modules/
+
+# Capacitor / Android build outputs (generated in CI)
+www/
+android/
+*.apk
+.gradle/
