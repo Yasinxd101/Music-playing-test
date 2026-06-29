@@ -14,7 +14,7 @@
   let player = null;
   let playerReady = false;
   let shuffle = false;
-  let loopQueue = true;
+  let loopMode = 'all'; // 'off' | 'all' (loop whole queue) | 'one' (repeat current song)
   let isPlaying = false;
 
   // ---- DOM ----
@@ -293,7 +293,7 @@
     }
     if (current < queue.length - 1) {
       playAt(current + 1);
-    } else if (loopQueue) {
+    } else if (loopMode === 'all') {
       playAt(0);
     } else if (auto) {
       isPlaying = false;
@@ -309,7 +309,7 @@
       return;
     }
     if (current > 0) playAt(current - 1);
-    else if (loopQueue) playAt(queue.length - 1);
+    else if (loopMode === 'all') playAt(queue.length - 1);
   }
 
   function togglePlay() {
@@ -392,6 +392,15 @@
 
   function updatePlayButton() {
     els.playBtn.textContent = isPlaying ? '⏸' : '▶';
+  }
+
+  function updateLoopButton() {
+    els.loopBtn.textContent = loopMode === 'one' ? '🔂' : '🔁';
+    els.loopBtn.classList.toggle('active', loopMode !== 'off');
+    els.loopBtn.title =
+      loopMode === 'one' ? 'Repeat one song'
+      : loopMode === 'all' ? 'Loop whole queue'
+      : 'Loop off';
   }
 
   // ---------------------------------------------------------------------------
@@ -495,7 +504,13 @@
       isPlaying = false;
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
     } else if (e.data === YTS.ENDED) {
-      nextTrack(true);
+      if (loopMode === 'one') {
+        // Repeat the current song.
+        player.seekTo(0, true);
+        player.playVideo();
+      } else {
+        nextTrack(true);
+      }
     }
     updatePlayButton();
   }
@@ -564,11 +579,16 @@
     showHint(shuffle ? 'Shuffle on.' : 'Shuffle off.');
   });
   els.loopBtn.addEventListener('click', () => {
-    loopQueue = !loopQueue;
-    els.loopBtn.classList.toggle('active', loopQueue);
-    showHint(loopQueue ? 'Looping the queue.' : 'Loop off.');
+    // Cycle: off -> loop whole queue -> repeat one song -> off
+    loopMode = loopMode === 'off' ? 'all' : loopMode === 'all' ? 'one' : 'off';
+    updateLoopButton();
+    showHint(
+      loopMode === 'all' ? 'Looping the whole queue.'
+      : loopMode === 'one' ? 'Repeating this song.'
+      : 'Loop off.'
+    );
   });
-  els.loopBtn.classList.toggle('active', loopQueue);
+  updateLoopButton();
 
   // Initial paint.
   renderQueue();
