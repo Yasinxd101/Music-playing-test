@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0f17" />
+  <meta name="description" content="Play YouTube videos and playlists with background audio and lock-screen controls." />
+  <title>Background Player</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Player" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="logo">▶ Background Player</h1>
+    <button id="installBtn" class="install-btn" hidden>Install app</button>
+  </header>
+
+  <main class="container">
+    <form id="loadForm" class="loader" autocomplete="off">
+      <input
+        id="urlInput"
+        class="url-input"
+        type="text"
+        placeholder="Paste a YouTube video or playlist link…"
+        aria-label="YouTube link or ID"
+        inputmode="url"
+      />
+      <button type="submit" class="play-btn">Play</button>
+    </form>
+
+    <p class="hint" id="hint">
+      Accepts video links (<code>youtu.be/…</code>, <code>watch?v=…</code>),
+      playlist links (<code>?list=PL…</code>), or raw IDs.
+    </p>
+
+    <section class="stage" aria-label="Player">
+      <div class="player-wrap">
+        <div id="player"></div>
+        <div id="placeholder" class="placeholder">
+          <span>Paste a link above to start playing.</span>
+        </div>
+      </div>
+
+      <div class="now-playing" id="nowPlaying" hidden>
+        <div class="np-title" id="npTitle">—</div>
+        <div class="np-author" id="npAuthor"></div>
+      </div>
+
+      <div class="controls" id="controls" hidden>
+        <button class="ctrl" id="prevBtn" title="Previous" aria-label="Previous">⏮</button>
+        <button class="ctrl ctrl-main" id="playPauseBtn" title="Play / Pause" aria-label="Play or pause">⏸</button>
+        <button class="ctrl" id="nextBtn" title="Next" aria-label="Next">⏭</button>
+        <button class="ctrl ctrl-toggle" id="loopBtn" title="Loop" aria-label="Toggle loop">🔁</button>
+        <button class="ctrl ctrl-toggle" id="shuffleBtn" title="Shuffle" aria-label="Toggle shuffle">🔀</button>
+      </div>
+    </section>
+
+    <details class="notes">
+      <summary>About background playback (read me)</summary>
+      <ul>
+        <li><strong>Desktop / another tab:</strong> audio keeps playing when you switch tabs or minimize the window. ✅</li>
+        <li><strong>Phone, screen locked:</strong> mobile browsers and YouTube intentionally pause embedded video when the screen is off. Lock-screen play/pause controls will appear here via the Media Session API where your browser supports it, but uninterrupted locked-screen playback of YouTube is officially only available with <strong>YouTube Premium</strong>.</li>
+        <li><strong>Tip:</strong> tap <em>Install app</em> (or "Add to Home Screen") for the best background behavior your device allows.</li>
+      </ul>
+    </details>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
