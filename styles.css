@@ -248,22 +248,6 @@ html, body {
 }
 .player-card:fullscreen .now-playing { text-align: center; }
 
-/* "Playing in pop-out window" note shown while Document PiP is active */
-.pip-note {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: var(--bg-elev);
-  border-radius: 10px;
-  color: var(--text-dim);
-  font-size: 0.95rem;
-  text-align: center;
-}
-/* The popped-out window's body */
-.pip-body .player-wrap { aspect-ratio: auto; height: 100vh; }
-
 /* Lock overlay */
 .lock-overlay {
   position: fixed;

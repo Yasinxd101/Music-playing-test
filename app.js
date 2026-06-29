@@ -29,7 +29,6 @@
     playBtn: $('play-btn'),
     prevBtn: $('prev-btn'),
     nextBtn: $('next-btn'),
-    pipBtn: $('pip-btn'),
     fullscreenBtn: $('fullscreen-btn'),
     lockBtn: $('lock-btn'),
     shuffleBtn: $('shuffle-btn'),
@@ -396,82 +395,6 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Pop-out floating player (Document Picture-in-Picture)
-  // ---------------------------------------------------------------------------
-
-  async function togglePiP() {
-    const wrap = document.querySelector('.player-wrap');
-
-    // Best path: Document Picture-in-Picture pops the whole player into a
-    // floating, always-on-top window so it keeps playing while you browse
-    // other tabs/apps. (Chrome/Edge desktop.)
-    if ('documentPictureInPicture' in window) {
-      if (window.documentPictureInPicture.window) {
-        window.documentPictureInPicture.window.close();
-        return;
-      }
-      try {
-        const pip = await window.documentPictureInPicture.requestWindow({
-          width: 400,
-          height: 240,
-        });
-        copyStylesTo(pip);
-        pip.document.body.classList.add('pip-body');
-        pip.document.body.style.margin = '0';
-        pip.document.body.style.background = '#000';
-        pip.document.body.append(wrap);
-        showPipNote(true);
-        els.pipBtn.classList.add('active');
-        pip.addEventListener('pagehide', () => {
-          document.querySelector('.player-card').prepend(wrap);
-          showPipNote(false);
-          els.pipBtn.classList.remove('active');
-        });
-      } catch {
-        showHint('Could not open the pop-out player.');
-      }
-      return;
-    }
-
-    // Fallback (mobile / Firefox): guide to YouTube's own PiP control.
-    showHint('Tap the video, then use YouTube’s Picture-in-Picture control.');
-    const iframe = document.querySelector('#player iframe');
-    if (iframe) iframe.focus();
-  }
-
-  function copyStylesTo(win) {
-    [...document.styleSheets].forEach((sheet) => {
-      try {
-        const css = [...sheet.cssRules].map((r) => r.cssText).join('');
-        const style = win.document.createElement('style');
-        style.textContent = css;
-        win.document.head.appendChild(style);
-      } catch {
-        if (sheet.href) {
-          const link = win.document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = sheet.href;
-          win.document.head.appendChild(link);
-        }
-      }
-    });
-  }
-
-  function showPipNote(on) {
-    const card = document.querySelector('.player-card');
-    const existing = card.querySelector('.pip-note');
-    if (on) {
-      if (existing) return;
-      const note = document.createElement('div');
-      note.className = 'pip-note';
-      note.textContent = '▶ Playing in pop-out window';
-      card.prepend(note);
-    } else if (existing) {
-      existing.remove();
-    }
-  }
-
-  // ---------------------------------------------------------------------------
   // Fullscreen
   // ---------------------------------------------------------------------------
 
@@ -613,7 +536,6 @@
   els.playBtn.addEventListener('click', togglePlay);
   els.prevBtn.addEventListener('click', prevTrack);
   els.nextBtn.addEventListener('click', () => nextTrack());
-  els.pipBtn.addEventListener('click', togglePiP);
   els.fullscreenBtn.addEventListener('click', toggleFullscreen);
   els.lockBtn.addEventListener('click', lockScreen);
   // Hold-to-unlock (works for both touch and mouse).
