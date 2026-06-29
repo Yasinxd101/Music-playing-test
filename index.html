@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f0f17" />
+  <title>TuneStream — Background YouTube Player</title>
+  <meta name="description" content="Paste a YouTube video or playlist link and keep it playing while you work in another tab." />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎵</text></svg>" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1>🎵 TuneStream</h1>
+      <p class="tagline">Paste a YouTube link or playlist &mdash; keep it playing in the background.</p>
+    </header>
+
+    <form id="add-form" class="add-bar" autocomplete="off">
+      <input
+        id="url-input"
+        type="text"
+        inputmode="url"
+        placeholder="Paste a YouTube video or playlist link…"
+        aria-label="YouTube URL"
+        required
+      />
+      <button type="submit" id="add-btn">Add</button>
+    </form>
+    <p id="hint" class="hint" role="status" aria-live="polite"></p>
+
+    <main class="layout">
+      <section class="player-card">
+        <div class="player-wrap">
+          <div id="player"></div>
+          <div id="player-placeholder" class="player-placeholder">
+            <span>Add a video or playlist to start</span>
+          </div>
+        </div>
+
+        <div class="now-playing">
+          <div class="np-title" id="np-title">Nothing playing</div>
+          <div class="np-author" id="np-author"></div>
+        </div>
+
+        <div class="controls">
+          <button id="prev-btn" class="ctrl" title="Previous" aria-label="Previous">⏮</button>
+          <button id="play-btn" class="ctrl ctrl-main" title="Play / Pause" aria-label="Play or pause">▶</button>
+          <button id="next-btn" class="ctrl" title="Next" aria-label="Next">⏭</button>
+          <button id="pip-btn" class="ctrl" title="Picture-in-Picture" aria-label="Picture in picture">⧉</button>
+          <button id="shuffle-btn" class="ctrl" title="Shuffle" aria-label="Toggle shuffle">🔀</button>
+          <button id="loop-btn" class="ctrl" title="Loop queue" aria-label="Toggle loop">🔁</button>
+        </div>
+      </section>
+
+      <section class="queue-card">
+        <div class="queue-header">
+          <h2>Up Next</h2>
+          <button id="clear-btn" class="text-btn" title="Clear queue">Clear</button>
+        </div>
+        <ul id="queue-list" class="queue-list"></ul>
+        <p id="queue-empty" class="queue-empty">Your queue is empty.</p>
+      </section>
+    </main>
+
+    <details class="note">
+      <summary>Will this play when my phone screen is off?</summary>
+      <div class="note-body">
+        <p>
+          On a <strong>desktop browser</strong> or when you switch to <strong>another tab</strong>,
+          audio keeps playing — that works perfectly.
+        </p>
+        <p>
+          On a <strong>phone with the screen locked</strong>, YouTube itself blocks embedded
+          players from playing in the background (it's reserved for YouTube Premium). To get as
+          close as possible on mobile:
+        </p>
+        <ul>
+          <li>Tap the <strong>⧉ Picture-in-Picture</strong> button — the video shrinks to a
+            floating window that keeps playing while you use other apps.</li>
+          <li>Use the <strong>lock-screen media controls</strong> (play / pause / next) that this
+            app registers.</li>
+          <li>Add this page to your home screen (Share → <em>Add to Home Screen</em>) for an
+            app-like experience.</li>
+        </ul>
+      </div>
+    </details>
+
+    <footer class="app-footer">
+      Plays via the official YouTube player. No account or sign-in needed.
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
