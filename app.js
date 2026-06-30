@@ -17,6 +17,12 @@
   let loopMode = 'all'; // 'off' | 'all' (loop whole queue) | 'one' (repeat current song)
   let isPlaying = false;
 
+  // ---- A–B loop state ----
+  let loopStart = 0;
+  let loopEnd = 0;
+  let abEnabled = false;
+  let abTimer = null;
+
   // ---- DOM ----
   const $ = (id) => document.getElementById(id);
   const els = {
@@ -33,6 +39,9 @@
     lockBtn: $('lock-btn'),
     shuffleBtn: $('shuffle-btn'),
     loopBtn: $('loop-btn'),
+    abStart: $('ab-start'),
+    abEnd: $('ab-end'),
+    abToggle: $('ab-toggle'),
     clearBtn: $('clear-btn'),
     list: $('queue-list'),
     empty: $('queue-empty'),
@@ -273,6 +282,8 @@
 
   function playAt(i) {
     if (i < 0 || i >= queue.length) return;
+    // A–B times belong to the previous video; clear the loop on track change.
+    if (abEnabled && i !== current) disableAbLoop();
     current = i;
     renderQueue();
     const item = queue[i];
@@ -404,6 +415,99 @@
   }
 
   // ---------------------------------------------------------------------------
+  // A–B loop — play from loopStart and jump back the instant we pass loopEnd.
+  // Driven by a 200ms poll (the IFrame API can't fire on a timestamp).
+  // ---------------------------------------------------------------------------
+
+  /** Parse "h:mm:ss" / "mm:ss" / plain seconds into total seconds (NaN if invalid). */
+  function parseTime(str) {
+    if (str == null) return NaN;
+    const s = String(str).trim();
+    if (s === '') return NaN;
+    if (s.includes(':')) {
+      const parts = s.split(':').map((p) => Number(p.trim()));
+      if (parts.some((n) => Number.isNaN(n) || n < 0)) return NaN;
+      return parts.reduce((acc, n) => acc * 60 + n, 0);
+    }
+    const n = Number(s);
+    return Number.isNaN(n) ? NaN : n;
+  }
+
+  function fmtTime(total) {
+    total = Math.max(0, Math.round(total));
+    const h = Math.floor(total / 3600);
+    const m = Math.floor((total % 3600) / 60);
+    const sec = total % 60;
+    const mm = h ? String(m).padStart(2, '0') : String(m);
+    return (h ? h + ':' : '') + mm + ':' + String(sec).padStart(2, '0');
+  }
+
+  function stopAbPolling() {
+    if (abTimer) {
+      clearInterval(abTimer);
+      abTimer = null;
+    }
+  }
+
+  function startAbPolling() {
+    stopAbPolling(); // never stack intervals
+    // Re-clamp end against the real duration now that the video is loaded.
+    if (player && player.getDuration) {
+      const dur = player.getDuration();
+      if (dur > 0 && loopEnd > dur) loopEnd = dur;
+    }
+    abTimer = setInterval(() => {
+      if (!abEnabled || !player || !player.getCurrentTime) return;
+      const t = player.getCurrentTime();
+      if (t >= loopEnd || t < loopStart - 0.3) {
+        player.seekTo(loopStart, true);
+      }
+    }, 200);
+  }
+
+  function enableAbLoop() {
+    const s = parseTime(els.abStart.value);
+    let e = parseTime(els.abEnd.value);
+    if (Number.isNaN(s) || Number.isNaN(e)) {
+      showHint('Enter valid start and end times (e.g. 0:30 and 1:45).');
+      setAbToggle(false);
+      return;
+    }
+    // Clamp end to the video length if we know it.
+    if (player && player.getDuration) {
+      const dur = player.getDuration();
+      if (dur > 0 && e > dur) e = dur;
+    }
+    if (!(s < e)) {
+      showHint('Loop start must be before the end.');
+      setAbToggle(false);
+      return;
+    }
+    loopStart = Math.max(0, s);
+    loopEnd = e;
+    abEnabled = true;
+    setAbToggle(true);
+    showHint(`A–B loop on: ${fmtTime(loopStart)} → ${fmtTime(loopEnd)}.`);
+    // Re-seek to start now so it doesn't wait for the next pass.
+    if (player && playerReady) {
+      player.seekTo(loopStart, true);
+      if (isPlaying) startAbPolling();
+    }
+  }
+
+  function disableAbLoop() {
+    abEnabled = false;
+    stopAbPolling();
+    setAbToggle(false);
+  }
+
+  function setAbToggle(on) {
+    els.abToggle.classList.toggle('active', on);
+    els.abToggle.setAttribute('aria-pressed', on ? 'true' : 'false');
+    els.abToggle.textContent = on ? 'Looping A–B' : 'Loop A–B';
+  }
+
+  // ---------------------------------------------------------------------------
   // Fullscreen
   // ---------------------------------------------------------------------------
 
@@ -500,11 +604,18 @@
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'playing';
       // Sync the now-playing title with what's actually loaded.
       syncTitleFromPlayer();
+      if (abEnabled) startAbPolling();
     } else if (e.data === YTS.PAUSED) {
       isPlaying = false;
       if ('mediaSession' in navigator) navigator.mediaSession.playbackState = 'paused';
+      stopAbPolling();
     } else if (e.data === YTS.ENDED) {
-      if (loopMode === 'one') {
+      // If the A–B loop's end is right at the video's end, the poll can miss it
+      // and the video stops — catch that here and jump back to the start.
+      if (abEnabled) {
+        player.seekTo(loopStart, true);
+        player.playVideo();
+      } else if (loopMode === 'one') {
         // Repeat the current song.
         player.seekTo(0, true);
         player.playVideo();
@@ -589,6 +700,16 @@
     );
   });
   updateLoopButton();
+
+  // A–B loop: toggle on/off.
+  els.abToggle.addEventListener('click', () => {
+    if (abEnabled) disableAbLoop();
+    else enableAbLoop();
+  });
+  // Re-applying while already on (e.g. after editing the times) updates the range.
+  const reapplyAb = () => { if (abEnabled) enableAbLoop(); };
+  els.abStart.addEventListener('change', reapplyAb);
+  els.abEnd.addEventListener('change', reapplyAb);
 
   // Initial paint.
   renderQueue();

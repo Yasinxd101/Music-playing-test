@@ -53,6 +53,16 @@
           <button id="shuffle-btn" class="ctrl" title="Shuffle" aria-label="Toggle shuffle">🔀</button>
           <button id="loop-btn" class="ctrl" title="Loop queue" aria-label="Toggle loop">🔁</button>
         </div>
+
+        <div class="ab-loop">
+          <span class="ab-label">A–B loop</span>
+          <input id="ab-start" class="ab-input" type="text" inputmode="text"
+            placeholder="start (0:30)" aria-label="Loop start time" autocomplete="off" />
+          <span class="ab-dash">→</span>
+          <input id="ab-end" class="ab-input" type="text" inputmode="text"
+            placeholder="end (1:45)" aria-label="Loop end time" autocomplete="off" />
+          <button id="ab-toggle" class="ab-toggle" type="button" aria-pressed="false">Loop A–B</button>
+        </div>
       </section>
 
       <section class="queue-card">
